@@ -9,14 +9,15 @@ class FontRenamer(tk.Tk):
         super().__init__()
         self.title("字体文件重命名工具")
         self.geometry("1000x600")
-        self.file_paths = []
-        self.checkbox_vars = []
-        self.new_name_options = []
-        self.details_vars = []
-        self.progress_var = tk.DoubleVar()
+        self.file_paths = [] # 保存字体文件路径的列表
+        self.checkbox_vars = [] # 保存复选框变量的列表
+        self.new_name_options = [] # 保存新名称选项的列表
+        self.details_vars = [] # 保存详情变量的列表
+        self.progress_var = tk.DoubleVar() # 进度条变量
         self.create_widgets()
 
     def create_widgets(self):
+        # 创建标题框架
         title_frame = tk.Frame(self)
         title_frame.pack(side=tk.TOP, fill=tk.X, pady=5)
 
@@ -35,6 +36,7 @@ class FontRenamer(tk.Tk):
         details_label = tk.Label(title_frame, text="详情")
         details_label.pack(side=tk.LEFT, padx=5)
 
+        # 创建表格框架
         table_frame = tk.Frame(self)
         table_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
@@ -60,6 +62,7 @@ class FontRenamer(tk.Tk):
         # 支持鼠标滚轮滚动
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 
+        # 创建按钮框架
         button_frame = tk.Frame(self)
         button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
 
@@ -100,26 +103,31 @@ class FontRenamer(tk.Tk):
                         darkcolor='green')
 
     def _on_mousewheel(self, event):
+        # 处理鼠标滚轮事件
         self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def toggle_all_checkboxes(self):
+        # 全选或取消全选复选框
         for checkbox_var in self.checkbox_vars:
             checkbox_var.set(self.select_all_var.get())
         self.update_rename_button_state()
 
     def update_rename_button_state(self):
+        # 更新重命名按钮的状态
         if any(checkbox_var.get() for checkbox_var in self.checkbox_vars):
             self.rename_btn.config(state=tk.NORMAL)
         else:
             self.rename_btn.config(state=tk.DISABLED)
 
     def load_files(self):
+        # 加载字体文件
         file_paths = filedialog.askopenfilenames(
             title="选择字体文件", filetypes=[("字体文件", "*.ttf;*.otf;*.ttc")]
         )
         self.process_files(file_paths)
 
     def load_folder(self):
+        # 加载文件夹中的字体文件
         folder_path = filedialog.askdirectory(title="选择文件夹")
         if folder_path:
             file_paths = []
@@ -130,6 +138,7 @@ class FontRenamer(tk.Tk):
             self.process_files(file_paths)
 
     def process_files(self, file_paths):
+        # 处理字体文件
         total_files = len(file_paths)
         for idx, file_path in enumerate(file_paths):
             if file_path in self.file_paths:
@@ -142,11 +151,13 @@ class FontRenamer(tk.Tk):
         self.update_rename_button_state()
 
     def update_progress_bar(self, current, total):
+        # 更新进度条
         self.progress_var.set((current / total) * 100)
         self.update_idletasks()
 
 
     def get_font_names(self, file_path):
+        # 获取字体文件中的字体名称
         try:
             font = TTFont(file_path)
             chinese_names = []
@@ -179,6 +190,7 @@ class FontRenamer(tk.Tk):
         return False
 
     def get_font_names_from_collection(self, file_path):
+        # 获取字体集合中的字体名称
         font_names = []
         ttc = TTFont(file_path)
         for i in range(ttc.reader.numFonts):
@@ -201,6 +213,7 @@ class FontRenamer(tk.Tk):
         return font_names
 
     def add_file_to_table(self, file_path, font_names):
+        # 将文件添加到表格中
         row = len(self.file_paths) - 1
         checkbox_var = tk.IntVar()
         self.checkbox_vars.append(checkbox_var)
@@ -234,12 +247,14 @@ class FontRenamer(tk.Tk):
                 row=row*2, column=0, columnspan=4, sticky='ew')
 
     def update_details(self, new_name_var, file_path):
+        # 更新字体详情
         selected_name = new_name_var.get()
         details = self.get_font_details(file_path, selected_name)
         details_index = self.new_name_options.index(new_name_var)
         self.details_vars[details_index].set(details)
 
     def get_font_details(self, file_path, font_name):
+        # 获取字体详情
         try:
             font = TTFont(file_path)
             for record in font['name'].names:
@@ -254,12 +269,14 @@ class FontRenamer(tk.Tk):
         return "无详情"
 
     def get_name_record(self, font, nameID):
+        # 获取字体名称记录
         for record in font['name'].names:
             if record.nameID == nameID:
                 return record.toUnicode()
         return "无"
 
     def rename_selected_files(self):
+        # 重命名选中的文件
         selected_files = []
         renamed_files = []
         for checkbox_var, file_path, new_name_var in zip(self.checkbox_vars, self.file_paths, self.new_name_options):
@@ -302,6 +319,7 @@ class FontRenamer(tk.Tk):
         self.clear_table()
 
     def clear_table(self):
+        # 清空表格
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
         self.file_paths = []
